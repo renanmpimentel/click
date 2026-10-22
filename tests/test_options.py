@@ -970,6 +970,24 @@ def test_explicit_envvar_list_keeps_each_spelling(runner, name):
     assert result.output == "True\n"
 
 
+@pytest.mark.parametrize(
+    ("env", "expected"),
+    [
+        ({"PRIMARY": "first", "SECONDARY": "second"}, "first"),
+        ({"PRIMARY": "", "SECONDARY": "second"}, "second"),
+    ],
+)
+def test_explicit_envvar_list_prefers_first_nonempty_value(runner, env, expected):
+    @click.command()
+    @click.option("--value", envvar=["PRIMARY", "SECONDARY"])
+    def cmd(value):
+        click.echo(value)
+
+    result = runner.invoke(cmd, env=env)
+    assert result.exit_code == 0
+    assert result.output == f"{expected}\n"
+
+
 def test_nargs_envvar(runner):
     @click.command()
     @click.option("--arg", nargs=2)
